@@ -1,0 +1,27 @@
+# Secrets / local environment
+.env
+.env.*
+!.env.example
+
+# Virtual environments
+.venv/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Local tool configs
+.devin/
+.pytest_cache/
+
+# Build outputs
+build/
+dist/
