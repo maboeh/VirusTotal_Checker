@@ -20,11 +20,21 @@ def activate_app() -> None:
 
     Wird benoetigt, damit ein PyInstaller-``.app``-Bundle den echten
     App-Fokus erhaelt und Klicks auf Buttons verarbeitet werden.
+
+    Setzt zusaetzlich die Activation Policy auf ``Regular``, damit macOS
+    die App als normale Anwendung behandelt und Toplevel-Fenster
+    (Einstellungen/Update-Dialog) korrekt anzeigt. Ohne diesen Schritt
+    hat ein PyInstaller-Bundle oft die Policy ``Accessory`` und Dialoge
+    erscheinen unsichtbar hinter dem Hauptfenster.
     """
     if not is_macos():
         return
     try:
-        from AppKit import NSApplicationActivateIgnoringOtherApps, NSApp  # type: ignore
+        from AppKit import (  # type: ignore
+            NSApplicationActivateIgnoringOtherApps,
+            NSApplicationActivationPolicyRegular,
+            NSApp,
+        )
     except Exception:
         try:
             # Fallback fuer aeltere pyobjc-Versionen (deprecated, aber funktionsfaehig)
@@ -34,6 +44,9 @@ def activate_app() -> None:
             return
         return
     try:
+        # WICHTIG: Activation Policy auf Regular setzen, sonst ist die App
+        # ein "Accessory" und Toplevel-Fenster werden nicht angezeigt.
+        NSApp.setActivationPolicy_(NSApplicationActivationPolicyRegular)
         NSApp.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
     except Exception:
         try:
