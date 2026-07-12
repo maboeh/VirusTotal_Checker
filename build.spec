@@ -1,6 +1,11 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import sys
+
 from PyInstaller.utils.hooks import collect_data_files
+
+# Version aus config.py auslesen, um DRY zu wahren
+from config import VERSION as APP_VERSION
 
 block_cipher = None
 
@@ -35,3 +40,18 @@ coll = COLLECT(exe,
                upx=True,
                upx_exclude=[],
                name='virustotal_scanner')
+
+# macOS: .app Bundle erzeugen
+if sys.platform == 'darwin':
+    app = BUNDLE(
+        coll,
+        name='VirusTotal Scanner.app',
+        bundle_identifier='com.maboeh.virustotalscanner',
+        info_plist={
+            'CFBundleName': 'VirusTotal Scanner',
+            'CFBundleShortVersionString': APP_VERSION,
+            'CFBundleVersion': APP_VERSION,
+            'NSHighResolutionCapable': True,
+            'LSMinimumSystemVersion': '10.13',
+        },
+    )

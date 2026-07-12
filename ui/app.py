@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+import sys
+import threading
+
 import customtkinter as ctk
 
+from api.update_checker import UpdateInfo, check_for_update
+from api.update_installer import perform_update
 from api.virustotal_client import VirusTotalClient
-from config import VIRUSTOTAL_API_KEY
+from config import APP_NAME, VERSION, VIRUSTOTAL_API_KEY
 from ui.file_scan_frame import FileScanFrame
 from ui.settings_dialog import SettingsDialog
+from ui.update_dialog import UpdateDialog
 from ui.url_scan_frame import URLScanFrame
 
 
@@ -13,7 +19,7 @@ class App(ctk.CTk):
     def __init__(self) -> None:
         super().__init__()
 
-        self.title("VirusTotal Scanner")
+        self.title(f"{APP_NAME} v{VERSION}")
         self.geometry("800x700")
         self.minsize(600, 500)
 
@@ -23,6 +29,7 @@ class App(ctk.CTk):
         self._client = VirusTotalClient()
         self._build_ui()
         self._center_window()
+        self._check_for_updates_async()
 
     def _build_ui(self) -> None:
         self.grid_columnconfigure(0, weight=1)
@@ -100,3 +107,40 @@ class App(ctk.CTk):
         x = (self.winfo_screenwidth() // 2) - (width // 2)
         y = (self.winfo_screenheight() // 2) - (height // 2)
         self.geometry(f"{width}x{height}+{x}+{y}")
+
+    def _check_for_updates_async(self) -> None:
+        def worker() -> None:
+            update_info = check_for_update()
+            if update_info is not None:
+                self.after(0, lambda: self._show_update_dialog(update_info))
+
+        thread = threading.Thread(target=worker, daemon=True)
+        thread.start()
+
+    def _show_update_dialog(self, update_info: UpdateInfo) -> None:
+        if hasattr(self, "_update_dialog") and self._update_dialog.winfo_exists():
+            self._update_dialog.focus_set()
+            return
+        self._update_dialog = UpdateDialog(
+            self, update_info, on_install=self._on_install_update
+        )
+
+    def _on_install_update(self, update_info: UpdateInfo) -> None:
+        def worker() -> None:
+            try:
+                perform_update(update_info)
+                self.after(100, self._quit_for_update)
+            except Exception as e:
+                print(f"Update fehlgeschlagen: {e}")
+                self.after(0, lambda: self._show_update_error(str(e)))
+
+        thread = threading.Thread(target=worker, daemon=True)
+        thread.start()
+
+    def _quit_for_update(self) -> None:
+        self.quit()
+        sys.exit(0)
+
+    def _show_update_error(self, message: str) -> None:
+        error_label = ctk.CTkLabel(self, text=f"Update fehlgeschlagen: {message}")
+        error_label.grid(row=4, column=0, padx=20, pady=5, sticky="w")

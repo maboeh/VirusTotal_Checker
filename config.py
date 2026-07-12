@@ -16,6 +16,12 @@ PROJECT_DIR = Path(__file__).resolve().parent
 
 load_dotenv(PROJECT_DIR / ".env", override=False)
 
+APP_NAME = "VirusTotal Scanner"
+VERSION = "1.0.0"
+
+GITHUB_OWNER = "maboeh"
+GITHUB_REPO = "VirusTotal_Checker"
+
 KEYRING_SERVICE = "VirusTotalScanner"
 KEYRING_USERNAME = "api_key"
 

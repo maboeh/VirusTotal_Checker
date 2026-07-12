@@ -1,0 +1,105 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            artifact_name: VirusTotal-Scanner-macOS
+            archive_ext: zip
+          - os: windows-latest
+            artifact_name: VirusTotal-Scanner-Windows
+            archive_ext: zip
+          - os: ubuntu-latest
+            artifact_name: VirusTotal-Scanner-Linux
+            archive_ext: tar.gz
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build with PyInstaller
+        shell: bash
+        run: pyinstaller build.spec --noconfirm
+
+      - name: Package artifact (macOS)
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          cd dist
+          zip -r -y "../${{ matrix.artifact_name }}.zip" "VirusTotal Scanner.app"
+
+      - name: Package artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: |
+          cd dist
+          7z a -tzip "../${{ matrix.artifact_name }}.zip" virustotal_scanner
+
+      - name: Package artifact (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          cd dist
+          tar -czf "../${{ matrix.artifact_name }}.tar.gz" virustotal_scanner
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            ${{ matrix.artifact_name }}.zip
+            ${{ matrix.artifact_name }}.tar.gz
+          if-no-files-found: ignore
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List artifacts
+        shell: bash
+        run: find artifacts -type f
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            artifacts/**/*.zip
+            artifacts/**/*.tar.gz
