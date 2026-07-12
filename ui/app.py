@@ -95,7 +95,6 @@ class App(ctk.CTk):
         footer.grid(row=3, column=0, pady=(0, 10))
 
     def _open_settings(self) -> None:
-        _debug_log("DEBUG: _open_settings aufgerufen")
         if hasattr(self, "_settings_dialog") and self._settings_dialog.winfo_exists():
             self._settings_dialog.focus_set()
             return

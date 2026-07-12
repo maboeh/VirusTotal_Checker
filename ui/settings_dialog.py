@@ -4,7 +4,8 @@ from typing import Callable
 
 import customtkinter as ctk
 
-from config import VIRUSTOTAL_API_KEY, save_api_key
+import config as _config
+from config import save_api_key
 from ui.macos_utils import bring_to_front
 
 
@@ -42,7 +43,7 @@ class SettingsDialog(ctk.CTkToplevel):
         label.grid(row=0, column=0, padx=20, pady=(20, 5), sticky="w")
 
         self._entry = ctk.CTkEntry(self, show="*", width=360)
-        self._entry.insert(0, VIRUSTOTAL_API_KEY)
+        self._entry.insert(0, _config.VIRUSTOTAL_API_KEY)
         self._entry.grid(row=1, column=0, padx=20, pady=5, sticky="ew")
 
         self._show_button = ctk.CTkButton(
@@ -74,7 +75,6 @@ class SettingsDialog(ctk.CTkToplevel):
             self._show_button.configure(text="Anzeigen")
 
     def _save(self) -> None:
-        _dlg_log("DEBUG: SettingsDialog._save aufgerufen")
         key = self._entry.get().strip()
         save_api_key(key)
         if self._on_save:
