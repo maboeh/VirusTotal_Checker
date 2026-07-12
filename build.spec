@@ -1,11 +1,18 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
+import re
 import sys
 
 from PyInstaller.utils.hooks import collect_data_files
 
-# Version aus config.py auslesen, um DRY zu wahren
-from config import VERSION as APP_VERSION
+# Version aus config.py parsen (Import schlägt im spec-Kontext fehl,
+# da das Projektverzeichnis nicht auf sys.path steht)
+_spec_dir = os.getcwd()
+with open(os.path.join(_spec_dir, 'config.py'), encoding='utf-8') as _f:
+    _config_src = _f.read()
+_match = re.search(r'^VERSION\s*=\s*["\']([^"\']+)["\']', _config_src, re.MULTILINE)
+APP_VERSION = _match.group(1) if _match else '0.0.0'
 
 block_cipher = None
 
