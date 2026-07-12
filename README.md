@@ -1,49 +1,49 @@
 # VirusTotal Checker
 
-Desktop-Anwendung zum Scannen von URLs und Dateien über die VirusTotal API v3.
+A simple desktop application for scanning URLs and files using the VirusTotal API v3.
 
-## Voraussetzungen
+## Requirements
 
 - Python 3.10+
-- VirusTotal API-Key ([kostenlos registrieren](https://www.virustotal.com/gui/join-us))
+- A VirusTotal API key ([sign up for free](https://www.virustotal.com/gui/join-us))
 
 ## Installation
 
 ```bash
-# Repository klonen
-git clone <repo-url>
+# Clone the repository
+git clone https://github.com/maboeh/VirusTotal_Checker.git
 cd VirusTotal_Checker
 
-# Virtuelle Umgebung erstellen & aktivieren
+# Create and activate a virtual environment
 python -m venv .venv
 source .venv/bin/activate  # macOS/Linux
 # .venv\Scripts\activate   # Windows
 
-# Abhängigkeiten installieren
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-## Konfiguration
+## Configuration
 
-Starte die App und klicke auf **Einstellungen**, um den VirusTotal API-Key zu hinterlegen.
-Alternativ kannst du die Umgebungsvariable `VIRUSTOTAL_API_KEY` setzen oder eine `.env`-Datei im Projektverzeichnis verwenden.
+Start the app and click **Settings** to enter your VirusTotal API key.
+Alternatively, you can set the `VIRUSTOTAL_API_KEY` environment variable or create a `.env` file in the project root.
 
-**Wichtig:** Der API-Key wird nicht in das PyInstaller-Bundle integriert. Für den Build ist daher zwingend die Eingabe über den Einstellungsdialog nötig.
+**Important:** The API key is not bundled into the PyInstaller build. For a build, you must enter the key through the settings dialog.
 
-## Starten
+## Usage
 
 ```bash
 python main.py
 ```
 
-## Funktionen
+## Features
 
-- **URL-Scan** – Überprüfe beliebige URLs auf Bedrohungen
-- **Datei-Scan** – Lade Dateien hoch und lasse sie von 70+ Scannern analysieren
-- **Vorab-Prüfung** – Vor einem Upload wird per SHA-256 (Dateien) bzw. URL-Hash (URLs) geprüft, ob ein Bericht bereits existiert
-- **Cancel-Button** – Laufende Scans können abgebrochen werden
-- **Farbodierte Ergebnisse** – Sofort erkennen, welche Scanner Bedrohungen melden
-- **Einstellungsdialog** – API-Key bequem in der App hinterlegen
+- **URL Scan** – Check any URL for threats
+- **File Scan** – Upload files and have them analyzed by 70+ scanners
+- **Pre-check** – Before uploading, the app checks for an existing report using SHA-256 (files) or URL hash (URLs)
+- **Cancel button** – Cancel running scans at any time
+- **Color-coded results** – Instantly see which scanners report threats
+- **Settings dialog** – Conveniently store the API key inside the app
 
 ## Tests
 
@@ -59,8 +59,14 @@ pip install pyinstaller
 pyinstaller build.spec
 ```
 
-Nach dem Build findest du die App ohne gebundelte `.env` unter `dist/virustotal_scanner`.
+After the build, you will find the app without a bundled `.env` under `dist/virustotal_scanner`.
 
-## Lizenz
+## Security Notes
+
+- Never commit your `.env` file or API key.
+- The `.env` file is already excluded by `.gitignore`.
+- The app stores the API key in the system keyring when available, and falls back to a local `settings.json` with restricted permissions (`0o600`) if keyring is unavailable.
+
+## License
 
 MIT
