@@ -5,6 +5,7 @@ from typing import Callable
 import customtkinter as ctk
 
 from config import VIRUSTOTAL_API_KEY, save_api_key
+from ui.macos_utils import bring_to_front
 
 
 class SettingsDialog(ctk.CTkToplevel):
@@ -17,11 +18,18 @@ class SettingsDialog(ctk.CTkToplevel):
         self._on_save = on_save
         self._build_ui()
         self._center()
-        # Reihenfolge auf macOS kritisch: erst Fenster sichtbar machen,
-        # dann grab setzen, sonst freeze des Main-Loops.
-        self.after(50, self._make_modal)
+        # WICHTIG: Auf macOS darf grab_set() erst laufen, wenn das Fenster
+        # sichtbar und fokussiert ist, sonst blockiert es den Main-Loop und
+        # die App wirkt eingefroren. Daher erst nach vorne heben, dann grab.
+        self._make_modal()
 
     def _make_modal(self) -> None:
+        # Auf macOS erscheint das Toplevel sonst hinter dem Hauptfenster;
+        # grab_set() wuerde dann alle Eingaben an ein unsichtbares Fenster
+        # binden und die App wirkt eingefroren. Daher zuerst nach vorne
+        # heben und fokussieren, bevor der grab gesetzt wird.
+        self.update_idletasks()
+        bring_to_front(self)
         self.focus_set()
         self.grab_set()
 
@@ -66,6 +74,7 @@ class SettingsDialog(ctk.CTkToplevel):
             self._show_button.configure(text="Anzeigen")
 
     def _save(self) -> None:
+        _dlg_log("DEBUG: SettingsDialog._save aufgerufen")
         key = self._entry.get().strip()
         save_api_key(key)
         if self._on_save:

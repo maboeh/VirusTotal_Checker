@@ -10,6 +10,7 @@ from api.update_installer import perform_update
 from api.virustotal_client import VirusTotalClient
 from config import APP_NAME, VERSION, VIRUSTOTAL_API_KEY
 from ui.file_scan_frame import FileScanFrame
+from ui.macos_utils import activate_app, bring_to_front
 from ui.settings_dialog import SettingsDialog
 from ui.update_dialog import UpdateDialog
 from ui.url_scan_frame import URLScanFrame
@@ -26,9 +27,15 @@ class App(ctk.CTk):
         ctk.set_appearance_mode("system")
         ctk.set_default_color_theme("blue")
 
+        # macOS: App nativ aktivieren, damit das Fenster (insbesondere im
+        # gebauten .app-Bundle) Klicks erhaelt. Danach das Hauptfenster
+        # nach vorne heben und fokussieren.
+        activate_app()
+
         self._client = VirusTotalClient()
         self._build_ui()
         self._center_window()
+        bring_to_front(self)
         self._check_for_updates_async()
 
     def _build_ui(self) -> None:
@@ -88,6 +95,7 @@ class App(ctk.CTk):
         footer.grid(row=3, column=0, pady=(0, 10))
 
     def _open_settings(self) -> None:
+        _debug_log("DEBUG: _open_settings aufgerufen")
         if hasattr(self, "_settings_dialog") and self._settings_dialog.winfo_exists():
             self._settings_dialog.focus_set()
             return

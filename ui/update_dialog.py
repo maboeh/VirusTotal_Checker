@@ -8,6 +8,7 @@ import customtkinter as ctk
 
 from api.update_checker import UpdateInfo
 from config import APP_NAME, VERSION
+from ui.macos_utils import bring_to_front
 
 
 class UpdateDialog(ctk.CTkToplevel):
@@ -27,9 +28,17 @@ class UpdateDialog(ctk.CTkToplevel):
         self._on_install = on_install
         self._build_ui()
         self._center()
-        self.after(50, self._make_modal)
+        # WICHTIG: Auf macOS darf grab_set() erst laufen, wenn das Fenster
+        # sichtbar und fokussiert ist, sonst blockiert es den Main-Loop.
+        self._make_modal()
 
     def _make_modal(self) -> None:
+        # Auf macOS erscheint das Toplevel sonst hinter dem Hauptfenster;
+        # grab_set() wuerde dann alle Eingaben an ein unsichtbares Fenster
+        # binden und die App wirkt eingefroren. Daher zuerst nach vorne
+        # heben und fokussieren, bevor der grab gesetzt wird.
+        self.update_idletasks()
+        bring_to_front(self)
         self.focus_set()
         self.grab_set()
 
