@@ -4,7 +4,7 @@ import os
 import re
 import sys
 
-from PyInstaller.utils.hooks import collect_data_files
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 # Version aus config.py parsen (Import schlägt im spec-Kontext fehl,
 # da das Projektverzeichnis nicht auf sys.path steht)
@@ -20,7 +20,7 @@ a = Analysis(['main.py'],
              pathex=['.'],
              binaries=[],
              datas=collect_data_files('customtkinter'),
-             hiddenimports=['customtkinter'],
+             hiddenimports=['customtkinter'] + collect_submodules('customtkinter'),
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
